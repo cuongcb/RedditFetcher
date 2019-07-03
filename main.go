@@ -14,7 +14,7 @@ func main() {
 	}
 
 	options := map[string]string{
-		"limit": "10",
+		"limit": "2",
 		"sort":  "best",
 		"depth": "10",
 	}
@@ -26,10 +26,27 @@ func main() {
 		return
 	}
 
-	for index, post := range harvest.Posts {
-		fmt.Printf("Post [%d] *<%s>*\n", index, post.Title)
-		for _, comment := range post.Replies {
-			fmt.Printf("*** [%s] commented --> %s\n", comment.Author, comment.Body)
+	for idx, post := range harvest.Posts {
+		subHarvest, err := bot.ListingWithParams("/r/golang/comments/"+post.ID,
+			options)
+		if err != nil {
+			fmt.Printf("Failed to fetch /r/golang/comments/%s: %s\n", post.ID, err)
+			return
+		}
+
+		for _, subPost := range subHarvest.Posts {
+			fmt.Printf("Post [%d] *** %s ***\n", idx, subPost.Title)
+			for _, comment := range subPost.Replies {
+				fmt.Printf("*** [%s] commented ---> %s\n", comment.Author, comment.Body)
+			}
+			fmt.Printf("%s\n", "==================================================")
 		}
 	}
+
+	// for index, post := range harvest.Posts {
+	// 	fmt.Printf("Post [%d] *<%s>*\n", index, post.Title)
+	// 	for _, comment := range post.Replies {
+	// 		fmt.Printf("*** [%s] commented --> %s\n", comment.Author, comment.Body)
+	// 	}
+	// }
 }
