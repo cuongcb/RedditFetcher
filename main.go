@@ -6,77 +6,58 @@ import (
 	"github.com/turnage/graw/reddit"
 )
 
-// Where is the sorting kind of the posts/comments/messages
-type Where int
+// where is the sorting kind of the posts/comments/messages
+type where string
+
+func (w where) toString() string {
+	return string(w)
+}
 
 const (
-	Best Where = iota
-	Top
-	New
-	Controversial
-	Old
+	best          where = "best"
+	top           where = "top"
+	new           where = "new"
+	controversial where = "controversial"
+	old           where = "old"
 )
 
-// func getTopPost(subReddit string, numbPost int, w Where) (reddit.Harvest, error) {
-// 	return
-// }
+const (
+	defaultLimit string = "25"
+	defaultDepth string = "10"
+)
 
 func main() {
-	bot, err := reddit.NewBotFromAgentFile("rf.env", 0)
+	bot, err := reddit.NewBotFromAgentFile(".env", 0)
 	if err != nil {
-		fmt.Println("Failed to create bot handle: ", err)
-		return
+		panic(err)
 	}
 
 	options := map[string]string{
-		"limit": "10",
-		"sort":  "best",
-		"depth": "10",
+		"limit": defaultLimit,
+		"sort":  best.toString(),
+		"depth": defaultDepth,
 	}
 
 	harvest, err := bot.ListingWithParams("/r/golang",
 		options)
 	if err != nil {
-		fmt.Println("Failed to fetch /r/golang: ", err)
-		return
+		panic(err)
 	}
 
-	for idx, post := range harvest.Posts {
-		// subHarvest, err := bot.ListingWithParams("/r/golang/comments/"+post.ID,
-		// 	options)
-		// if err != nil {
-		// 	fmt.Printf("Failed to fetch /r/golang/comments/%s: %s\n", post.ID, err)
-		// 	return
-		// }
+	showPosts(harvest.Posts)
+}
 
-		post, err := bot.Thread("/r/golang/comments/" + post.ID)
-		if err != nil {
-			fmt.Printf("Failed to fetch /r/golang/comments/%s: %s\n", post.ID, err)
-			return
+func showPosts(posts []*reddit.Post) {
+	for _, post := range posts {
+		newline := false
+		titleLen := len(post.Title)
+		if titleLen > 80 {
+			titleLen = 80
+			newline = true
 		}
-
-		fmt.Printf("Post [%d] *** %s ***\n", idx, post.Title)
-		for _, comment := range post.Replies {
-			fmt.Printf(">> [%s] commented ---> %s\n", comment.Author, comment.Body)
-			for _, reply := range comment.Replies {
-				fmt.Printf("*** [%s] replied ---> %s\n", reply.Author, reply.Body)
-			}
+		fmt.Printf("> %s \n", post.Title[:titleLen])
+		if newline {
+			fmt.Println("...")
 		}
-		fmt.Printf("%s\n", "==================================================")
-
-		// for _, subPost := range subHarvest.Posts {
-		// 	fmt.Printf("Post [%d] *** %s ***\n", idx, subPost.Title)
-		// 	for _, comment := range subPost.Replies {
-		// 		fmt.Printf("*** [%s] commented ---> %s\n", comment.Author, comment.Body)
-		// 	}
-		// 	fmt.Printf("%s\n", "==================================================")
-		// }
 	}
-
-	// for index, post := range harvest.Posts {
-	// 	fmt.Printf("Post [%d] *<%s>*\n", index, post.Title)
-	// 	for _, comment := range post.Replies {
-	// 		fmt.Printf("*** [%s] commented --> %s\n", comment.Author, comment.Body)
-	// 	}
-	// }
 }
