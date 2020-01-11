@@ -45,19 +45,31 @@ func main() {
 	}
 
 	showPosts(harvest.Posts)
+
+	post := harvest.Posts[2]
+	deepPost, _ := bot.Thread(post.Permalink)
+	fmt.Println(">>>", deepPost.Title)
+	for _, r := range deepPost.Replies {
+		fmt.Println(r.Author, ":", r.Body)
+	}
+
 }
 
 func showPosts(posts []*reddit.Post) {
-	for _, post := range posts {
+	for idx, post := range posts {
 		newline := false
 		titleLen := len(post.Title)
 		if titleLen > 80 {
 			titleLen = 80
 			newline = true
 		}
-		fmt.Printf("> %s \n", post.Title[:titleLen])
+		fmt.Printf("[%d] %s \n", idx, post.Title[:titleLen])
 		if newline {
 			fmt.Println("...")
 		}
 	}
+}
+
+func showComments(post *reddit.Post) {
+
 }
